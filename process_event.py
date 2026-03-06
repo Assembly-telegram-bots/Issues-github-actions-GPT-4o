@@ -2,17 +2,18 @@ import os
 import json
 import re
 import time
-import requests
+from openai import OpenAI
 from github import Github, Auth
 
 gh_token = os.environ.get("GITHUB_TOKEN")
-model_token = os.environ.get("GH_MODELS_TOKEN")
+openai_api_key = os.environ.get("OPENAI_API_KEY")
 repo_name = os.environ.get("REPOSITORY")
 event_name = os.environ.get("EVENT_NAME")
 allowed_users = [u.strip().lower() for u in os.environ.get("ALLOWED_USER", "").split(",")]
 
-MODEL_NAME = "Llama-3.3-70B-Instruct"
-ENDPOINT = "https://models.inference.ai.azure.com/chat/completions"
+MODEL_NAME = "gpt-4o"
+
+client = OpenAI(api_key=openai_api_key)
 
 auth = Auth.Token(gh_token)
 gh = Github(auth=auth)
@@ -139,25 +140,17 @@ Changes: {diff_text}
 {base_instructions}"""
 
 def call_model(prompt: str, retries: int = 3, delay: int = 5) -> dict:
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {model_token}"
-    }
-    payload = {
-        "messages": [
-            {"role": "system", "content": "You are a professional software auditor. Always return valid JSON only. No markdown, no explanation, just the JSON object."},
-            {"role": "user", "content": prompt}
-        ],
-        "model": MODEL_NAME,
-        "temperature": 0.1
-    }
-
     for attempt in range(retries):
         try:
-            resp = requests.post(ENDPOINT, headers=headers, json=payload, timeout=60)
-            resp.raise_for_status()
-            data = resp.json()
-            raw = data['choices'][0]['message']['content'].strip()
+            response = client.chat.completions.create(
+                model=MODEL_NAME,
+                temperature=0.1,
+                messages=[
+                    {"role": "system", "content": "You are a professional software auditor. Always return valid JSON only. No markdown, no explanation, just the JSON object."},
+                    {"role": "user", "content": prompt}
+                ]
+            )
+            raw = response.choices[0].message.content.strip()
             raw = re.sub(r'^```json\s*|```$', '', raw, flags=re.MULTILINE).strip()
             return json.loads(raw)
         except Exception as e:

@@ -1,6 +1,6 @@
-# Генератор Issue на базе Gemini
+# Генератор Issue на базе GPT-4o
 
-Инструмент на базе ИИ в виде GitHub Action для автоматического код-ревью, аудита безопасности и создания интеллектуальных Issue с использованием Gemini API.
+Инструмент на базе ИИ в виде GitHub Action для автоматического код-ревью, аудита безопасности и создания интеллектуальных Issue с использованием OpenAI GPT-4o API.
 
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen?style=for-the-badge)](https://github.com/OstinUA)
 [![Version](https://img.shields.io/badge/version-1.0.0-blue?style=for-the-badge)](https://github.com/OstinUA)
@@ -23,45 +23,40 @@
 * **Умное тегирование:** Автоматическое назначение релевантных лейблов (например, `bug`, `enhancement`, `security`) на основе контекста.
 * **Аудит безопасности:** Сканирование патчей на наличие захардкоженных секретов, инъекций и XSS-уязвимостей с добавлением блока `Security Warning` в тело Issue.
 * **Поддержка двойного триггера:** Бесшовная обработка как стандартных пушей в главную ветку, так и событий синхронизации PR без дублирования задач.
-* **Нулевая стоимость:** Использование бесплатных лимитов Google Gemini API, избавляющее от необходимости платить за токены.
 * **Верификация личности:** Выполнение рабочих процессов исключительно для владельца репозитория для предотвращения несанкционированного использования API.
 
 ## Технологический стек и Архитектура
 * **Язык:** Python 3.11
 * **Оркестрация:** GitHub Actions (паттерн IssueOps)
-* **Библиотеки:** `PyGithub` (для взаимодействия с REST API GitHub), `requests` (для прямой связи с Google API)
-* **LLM Провайдер:** Google Gemini API (модель `gemini-2.5-flash`)
+* **Библиотеки:** `PyGithub` (для взаимодействия с REST API GitHub), `openai` (для связи с OpenAI API)
+* **LLM Провайдер:** OpenAI API (модель `gpt-4o`)
 
 ### Структура проекта и ключевые архитектурные решения
 Архитектура следует слабосвязанной модели IssueOps. Файл `.yml` отвечает за подготовку окружения и триггеры CI/CD, в то время как Python-скрипт управляет бизнес-логикой.
 * `.github/workflows/ai-issue.yml`: Определение CI/CD пайплайна. Пробрасывает секреты как переменные окружения.
-* `process_event.py`: Исполнитель ядра логики. Использует прямые HTTP POST запросы к эндпоинту Gemini для обхода конфликтов зависимостей SDK Google в средах Ubuntu runner.
+* `process_event.py`: Исполнитель ядра логики. Использует официальный OpenAI Python SDK для взаимодействия с моделью GPT-4o.
 
 ## Начало работы
 
 ### Требования
 * Репозиторий GitHub с включенными GitHub Actions.
-* API ключ от Google AI Studio.
+* API ключ от OpenAI.
 
 ### Установка
 1. Склонируйте ваш репозиторий:
    ```bash
-   git clone [https://github.com/OstinUA/your-repo.git](https://github.com/OstinUA/your-repo.git)
+   git clone https://github.com/OstinUA/your-repo.git
    cd your-repo
-
-```
+   ```
 
 2. Создайте файл рабочего процесса GitHub Action `.github/workflows/ai-issue.yml` и вставьте предоставленную конфигурацию YAML.
 3. Создайте `process_event.py` в корневой директории и вставьте предоставленный Python-скрипт.
 4. Сделайте коммит и отправьте файлы в ветку `main`:
-```bash
-git add .
-git commit -m "chore: setup gemini auto-issue generator"
-git push origin main
-
-```
-
-
+   ```bash
+   git add .
+   git commit -m "chore: setup gpt-4o auto-issue generator"
+   git push origin main
+   ```
 
 ## Тестирование
 
@@ -87,7 +82,7 @@ git push origin main
 
 Настройте следующие секреты репозитория через `Settings -> Secrets and variables -> Actions`:
 
-* `GEMINI_API_KEY`: Ваш сгенерированный ключ Google AI Studio.
+* `OPENAI_API_KEY`: Ваш ключ OpenAI API из https://platform.openai.com/api-keys.
 * `ALLOWED_USER`: Ваш точный логин GitHub (например, `OstinUA`).
 
 ## Лицензия
@@ -96,4 +91,4 @@ git push origin main
 
 ## Поддержка проекта
 
-Если этот инструмент оказался для вас полезным, поставьте звезду на GitHub или поддержите автора напрямую:
+Если этот инструмент оказался для вас полезным, поставьте звезду на GitHub или поддержите автора напрямую.
